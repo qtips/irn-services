@@ -1,1 +1,5 @@
 displayName="hijri-calendar"
+dependencies {
+    compile 'com.github.nscala-time:nscala-time_2.10:1.0.0'
+
+}
