@@ -13,7 +13,9 @@ object HijriServiceRoutes extends App with SimpleRoutingApp {
   implicit val system = ActorSystem("my-system")
   val HIJRI = "hijri"
   lazy val logger = LoggerFactory.getLogger(this.getClass)
-
+  import spray.httpx.SprayJsonSupport.sprayJsonMarshaller
+  import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
+  import no.irn.hijri.model.DateTimeJsonProtocol._
 
   startServer(interface = "localhost", port = 8080) {
     path(HIJRI / "today") {

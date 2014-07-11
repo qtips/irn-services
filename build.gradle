@@ -1,38 +1,40 @@
-scalaVersion="2.10.4"
-akkaActorVersion="2.3.0"
-sprayCanVersion="1.3.1"
-sprayRoutingVersion="1.3.1"
-slf4jVersion="1.6.1"
+scalaVersion = "2.10.4"
+akkaActorVersion = "2.3.0"
+sprayCanVersion = "1.3.1"
+sprayRoutingVersion = "1.3.1"
+slf4jVersion = "1.6.1"
 
 subprojects {
-   apply plugin: 'scala'
-   apply plugin: 'idea'
+    apply plugin: 'scala'
 
-   task wrapper(type: Wrapper) {
-       gradleVersion = '1.11'
-   }
+    task wrapper(type: Wrapper) {
+        gradleVersion = '1.11'
+    }
 
-   repositories {
-       mavenCentral()
-       maven {
-           url "http://repo.spray.io"
-       }
-   }
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://repo.spray.io"
+        }
+    }
 
-   dependencies {
-       compile 'org.scala-lang:scala-library:$scalaVersion'
-       compile "com.typesafe.akka:akka-actor_2.10:$akkaActorVersion"
-       compile "io.spray:spray-routing:$sprayCanVersion"
-       compile "io.spray:spray-can:$sprayRoutingVersion"
-       compile 'ch.qos.logback:logback-classic:1.1.2'
-       compile "org.slf4j:slf4j-api:$slf4jVersion"
+    dependencies {
+        compile 'org.scala-lang:scala-library:$scalaVersion'
+        compile "com.typesafe.akka:akka-actor_2.10:$akkaActorVersion"
+        compile "io.spray:spray-routing:$sprayCanVersion"
+        compile "io.spray:spray-can:$sprayRoutingVersion"
+        compile 'io.spray:spray-json_2.10:1.2.6'
+        compile 'ch.qos.logback:logback-classic:1.1.2'
+        compile "org.slf4j:slf4j-api:$slf4jVersion"
+        testCompile 'org.scalatest:scalatest_2.10:2.1.7'
 
 
-   }
 
-   compileScala {
-       scalaCompileOptions.useCompileDaemon = true
-   }
+    }
+
+    compileScala {
+        scalaCompileOptions.useCompileDaemon = true
+    }
 
 
 }
