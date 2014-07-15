@@ -19,7 +19,7 @@ class HijriDateSpec extends FlatSpec with Matchers {
 
   behavior of "HijriDate"
   it should "format to json" in {
-    val json = HijriDate(DateTime.now).toJson
+    val json = HijriDate(1111,11,11)
     println("hijridate"+json.toString())
   }
 

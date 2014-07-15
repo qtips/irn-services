@@ -1,15 +1,13 @@
 package no.irn.hijri.routes
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.{Props, Actor, ActorSystem}
+import akka.pattern.ask
 import spray.routing.{HttpService, SimpleRoutingApp}
 import org.slf4j.LoggerFactory
-import no.irn.hijri.model.HijriDate
-import org.joda.time.DateTime
-import akka.actor.Actor.Receive
-
-/**
- * Created by qadeer on 19.05.14.
- */
+import no.irn.hijri.model.{DateRelation, HijriDate}
+import no.irn.hijri.services.{ConverterActor, Converter}
+import akka.util.Timeout
+import java.util.concurrent.TimeUnit
 
 // we don't implement our route structure directly in the service actor because
 // we want to be able to test it independently, without having to spin up an actor
@@ -23,9 +21,12 @@ class HijriServiceActor extends Actor with HijriServiceRoutes {
   // timeout handling or alternative handler registration
   def receive = runRoute(hijriRoute)
 
+  val dateConverter = context.actorOf(Props[ConverterActor], "dateConverter")
+
 }
 
 trait HijriServiceRoutes extends HttpService {
+  implicit val timeout = Timeout(5,TimeUnit.SECONDS)
 
   // we use the enclosing ActorContext's or ActorSystem's dispatcher for our Futures and Scheduler
   implicit def executionContext = actorRefFactory.dispatcher
@@ -41,9 +42,11 @@ trait HijriServiceRoutes extends HttpService {
     pathPrefix(HIJRI) {
       path("today") {
         complete {
-          logger.debug("Calling today")
-          HijriDate(DateTime.now)
-
+          logger.debug("Calling today:")
+          (actorRefFactory.actorOf(Props[ConverterActor])
+            ? (HijriDate(1234, 12, 3), HijriDate(3214, 23, 1)))
+            .mapTo[List[DateRelation]]
+            .map(result => s"I got a response ${result}").recover{case _ =>; "error"}
         }
       } ~
         pathPrefix(IntNumber) {
@@ -51,7 +54,8 @@ trait HijriServiceRoutes extends HttpService {
             pathEnd {
               complete {
                 logger.debug("Calling /" + year)
-                "year:" + year
+                ""
+
               }
             } ~
               pathPrefix(IntNumber) {

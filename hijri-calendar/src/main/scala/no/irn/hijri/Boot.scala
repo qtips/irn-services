@@ -15,4 +15,7 @@ object Boot extends App  {
 
   // start a new HTTP server on port 8080 with our service actor as the handler
   IO(Http) ! Http.Bind(service, "localhost", port = 8080)
+
+  sys.addShutdownHook(system.shutdown())
+
 }
