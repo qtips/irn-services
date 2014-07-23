@@ -2,8 +2,10 @@ package no.irn.hijri.model
 
 import org.scalatest.{Matchers, FlatSpec}
 import spray.json._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-
+@RunWith(classOf[JUnitRunner])
 class HijriDateSpec extends FlatSpec with Matchers{
 
   behavior of "HijriDate"

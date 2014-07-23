@@ -4,9 +4,12 @@ import org.scalatest.FlatSpec
 import spray.testkit.ScalatestRouteTest
 import akka.actor.{Props}
 import no.irn.hijri.services.ConverterActor
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 
 // TODO
+@RunWith(classOf[JUnitRunner])
 class HijriServiceRouteSpec extends FlatSpec with ScalatestRouteTest with HijriServiceRoute{
 
   def actorRefFactory = system
