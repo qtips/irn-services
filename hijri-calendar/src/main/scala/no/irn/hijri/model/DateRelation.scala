@@ -4,12 +4,14 @@ import org.joda.time.DateTime
 import spray.json._
 import org.joda.time.format.DateTimeFormat
 
-case class DateRelation(hijriDate:HijriDate, gregorianDate:DateTime)
+case class DateRelation(hijriDate: HijriDate, gregorianDate: DateTime)
 
 
 object DateTimeJsonProtocol extends DefaultJsonProtocol {
+
   implicit object DateTimeJsonFormat extends RootJsonFormat[DateTime] {
     val formatter = DateTimeFormat.forPattern("YYYY-MM-dd")
+
     def write(date: DateTime) =
       JsString(date.toString(formatter))
 
@@ -20,5 +22,16 @@ object DateTimeJsonProtocol extends DefaultJsonProtocol {
       }
     }
   }
+
 }
+
+object DateRelationJsonProtocol extends DefaultJsonProtocol {
+
+  import DateTimeJsonProtocol._
+  import HijriDateJsonProtocol._
+
+  implicit val dateRelationFormat = jsonFormat2(DateRelation)
+}
+
+
 

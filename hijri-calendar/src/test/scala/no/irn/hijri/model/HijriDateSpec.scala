@@ -1,27 +1,34 @@
 package no.irn.hijri.model
 
 import org.scalatest.{Matchers, FlatSpec}
-import org.joda.time.DateTime
 import spray.json._
-import DateTimeJsonProtocol._
 
-/**
- * Created by qadeer on 22.05.14.
- */
-class HijriDateSpec extends FlatSpec with Matchers {
 
-  behavior of "DateTime"
-  it should "format to json" in {
-
-    val json = DateTime.now.toJson
-    println(json.toString)
-  }
+class HijriDateSpec extends FlatSpec with Matchers{
 
   behavior of "HijriDate"
-  it should "format to json" in {
-    val json = HijriDate(1111,11,11)
-    println("hijridate"+json.toString())
+  it should "throw exception when input is invalid" in {
+
   }
 
+  it should "increase and decrease years correctly" in {
+
+  }
+
+  it should "increase and decrease months correctly" in {
+
+  }
+
+  it should "increase and decrease days correctly" in {
+
+  }
+
+
+  behavior of "HijriDate Json Protocol"
+  it should "format to json" in {
+    import HijriDateJsonProtocol._
+    val json = HijriDate(1234,4,2).toJson.compactPrint
+    json shouldBe "\"1234-04-02\""
+  }
 
 }
