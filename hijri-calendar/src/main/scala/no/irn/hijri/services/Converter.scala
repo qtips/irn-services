@@ -11,6 +11,8 @@ class ConverterActor extends Actor {
   override def receive = {
     case (from:HijriDate,to:HijriDate) => sender() ! Converter.hijriToGregorian(from,to)
     case (from:DateTime,to:DateTime) => sender() ! Converter.gregorianToHijri(from,to)
+    case (date:HijriDate) => sender() ! Converter.hijriToGregorian(date)
+    case _ => sender() ! akka.actor.Status.Failure
   }
 }
 
@@ -29,5 +31,13 @@ object Converter {
       DateRelation(HijriDate(1446,1,1),new DateTime(2013,4,1,0,0)),
       DateRelation(HijriDate(1447,1,1),new DateTime(2014,4,1,0,0)))
 
+  }
+
+  def hijriToGregorian(date:HijriDate) = {
+    DateRelation(date,new DateTime(2001,1,2,0,0))
+  }
+
+  def gregorianToHijri(date:DateTime) = {
+    DateRelation(HijriDate(1432,1,2),date)
   }
 }

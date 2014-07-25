@@ -6,14 +6,20 @@ import akka.actor.{Props}
 import no.irn.hijri.services.ConverterActor
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
+import akka.util.Timeout
+import java.util.concurrent.TimeUnit
 
 
 // TODO
 @RunWith(classOf[JUnitRunner])
-class HijriServiceRouteSpec extends FlatSpec with ScalatestRouteTest with HijriServiceRoute{
+class HijriServiceRouteSpec extends FlatSpec with ScalatestRouteTest {
 
-  def actorRefFactory = system
-  def dateConverterActor = actorRefFactory.actorOf(Props[ConverterActor], "dateConverter") //TODO move to super trait
+
+  lazy val logger = LoggerFactory.getLogger(this.getClass())
+  implicit val timeout = Timeout(5, TimeUnit.SECONDS)
+  val dateConverterActor = system.actorOf(Props[ConverterActor], "dateConverter") //TODO move to super trait
+  val hijriRoute =  new HijriServiceRoute(dateConverterActor).hijriRoute
 
   behavior of "Hijri service routes"
 

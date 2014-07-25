@@ -4,6 +4,8 @@ import spray.json._
 import no.irn.hijri.model.HijriCalendarSource.HijriCalendarSource
 
 case class HijriDate(val year: Int, val month: Int, val day: Int) {
+  
+
 
   implicit def intToIntWithRangeSupport(source: Int) = new {
     def isBetween(lower: Int, upper: Int) = source >= lower && source <= upper
@@ -24,14 +26,6 @@ case class HijriDate(val year: Int, val month: Int, val day: Int) {
         month + (monthSum % 12),
         day)
     }
-  }
-
-  /**
-   * Do not know how many days there are in a month - must check with database
-   * @param days
-   */
-  def plusDays(days: Int) = {
-
   }
 
   def plusYears(years: Int) = {

@@ -1,21 +1,17 @@
 package no.irn.hijri.routes
 
+import akka.actor.{ActorRef}
 import akka.pattern.ask
-import spray.routing.HttpService
-import akka.util.Timeout
-import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
-import akka.actor.ActorRef
+import no.irn.hijri.model.{DateRelation}
 import org.joda.time.DateTime
-import no.irn.hijri.model.{HijriDate, DateRelation}
+import scala.concurrent.ExecutionContext
+import akka.util.Timeout
+import spray.routing.Directives
 
-trait GregorianServiceRoute extends HttpService {
-  implicit val timeout = Timeout(5, TimeUnit.SECONDS)
+class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives{
 
-  // we use the enclosing ActorContext's or ActorSystem's dispatcher for our Futures and Scheduler
-  implicit def executionContext = actorRefFactory.dispatcher
-
-  lazy val logger = LoggerFactory.getLogger(this.getClass)
+  private lazy val logger = LoggerFactory.getLogger(this.getClass)
 
 
   // Marshalling support for `application/json`
@@ -26,17 +22,15 @@ trait GregorianServiceRoute extends HttpService {
 
   import no.irn.hijri.model.DateRelationJsonProtocol._
 
-  implicit def dateConverterActor: ActorRef //actorRefFactory.actorOf(Props[ConverterActor], "dateConverter")
 
-
-  val gregorianRoute =
+  val hijriRoute =
 
     pathPrefix(IntNumber) {
       year =>
         pathEnd {
           complete {
             logger.debug("Calling /" + year)
-            val requestYear = HijriDate(year, 1, 1)
+            val requestYear = new DateTime(year, 1, 1, 0, 0, 0)
             (dateConverterActor ?(requestYear, requestYear.plusYears(1)))
               .mapTo[List[DateRelation]]
           }
@@ -46,7 +40,7 @@ trait GregorianServiceRoute extends HttpService {
               pathEnd {
                 complete {
                   logger.debug("Calling /" + year + "/" + month)
-                  val requestYearMonth = HijriDate(year, month, 1)
+                  val requestYearMonth = new DateTime(year, month, 1, 0, 0, 0)
                   (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1)))
                     .mapTo[List[DateRelation]]
                 }
@@ -55,12 +49,12 @@ trait GregorianServiceRoute extends HttpService {
                   day =>
                     complete {
                       logger.debug("Calling /" + year + "/" + month + "/" + day)
-                      val requestDay = new DateTime(year, month, day, 0, 0, 0)
-                      (dateConverterActor ?(requestDay, requestDay.plusDays(1)))
+                      (dateConverterActor ?  new DateTime(year, month, day, 0, 0, 0))
                         .mapTo[List[DateRelation]]
                     }
                 }
           }
     }
+
 
 }
