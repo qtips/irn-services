@@ -12,6 +12,7 @@ class ConverterActor extends Actor {
     case (from:HijriDate,to:HijriDate) => sender() ! Converter.hijriToGregorian(from,to)
     case (from:DateTime,to:DateTime) => sender() ! Converter.gregorianToHijri(from,to)
     case (date:HijriDate) => sender() ! Converter.hijriToGregorian(date)
+    case (date:DateTime) => sender() ! Converter.gregorianToHijri(date)
     case _ => sender() ! akka.actor.Status.Failure
   }
 }

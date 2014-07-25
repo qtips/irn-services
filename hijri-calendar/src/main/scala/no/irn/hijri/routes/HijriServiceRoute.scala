@@ -50,7 +50,7 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
                     complete {
                       logger.debug("Calling /" + year + "/" + month + "/" + day)
                       (dateConverterActor ?  new DateTime(year, month, day, 0, 0, 0))
-                        .mapTo[List[DateRelation]]
+                        .mapTo[DateRelation]
                     }
                 }
           }
