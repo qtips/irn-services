@@ -1,6 +1,9 @@
 displayName="hijri-calendar"
 dependencies {
     compile 'joda-time:joda-time:2.3'
+}
 
-
+task runServer(type:JavaExec, dependsOn:"classes") {
+    main = "no.irn.hijri.Boot"
+    classpath=sourceSets.main.runtimeClasspath
 }
