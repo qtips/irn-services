@@ -5,9 +5,11 @@ import akka.actor.Actor
 import org.joda.time.DateTime
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
+import no.irn.hijri.database.IslamicCalendarDBAdapter
 
 class ConverterActor extends Actor {
 
+  //TODO exception handling
   override def receive = {
     case (from:HijriDate,to:HijriDate) => sender() ! Converter.hijriToGregorian(from,to)
     case (from:DateTime,to:DateTime) => sender() ! Converter.gregorianToHijri(from,to)
@@ -27,10 +29,10 @@ object Converter {
   }
 
   def gregorianToHijri(from:DateTime, to:DateTime):List[DateRelation] = {
-    List(
-      DateRelation(HijriDate(1445,1,1),new DateTime(2012,4,1,0,0)),
-      DateRelation(HijriDate(1446,1,1),new DateTime(2013,4,1,0,0)),
-      DateRelation(HijriDate(1447,1,1),new DateTime(2014,4,1,0,0)))
+    // calculate difference between from and to
+    // from db fetch all hijri months closest to from (floor) and closest to to (ceil)
+    // for each row calculate hijri days until the # difference is achieved.
+    null
 
   }
 
@@ -39,6 +41,10 @@ object Converter {
   }
 
   def gregorianToHijri(date:DateTime) = {
-    DateRelation(HijriDate(1432,1,2),date)
+    // from db find the first hirji date where date is less than hijri's gregorian date
+    val closesHijriDate= IslamicCalendarDBAdapter.getClosestHijriDate(date)
+
+    // add difference in gregorian dates to the hijri date and return.
+    closesHijriDate
   }
 }

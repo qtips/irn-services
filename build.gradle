@@ -29,6 +29,11 @@ subprojects {
         compile "io.spray:spray-routing:$sprayCanVersion"
         compile "io.spray:spray-can:$sprayRoutingVersion"
         compile 'io.spray:spray-json_2.10:1.2.6'
+
+        /* database */
+        compile 'com.typesafe.slick:slick_2.10:2.1.0-M2'
+        compile 'mysql:mysql-connector-java:5.1.31'
+
         compile 'ch.qos.logback:logback-classic:1.1.2'
         compile "org.slf4j:slf4j-api:$slf4jVersion"
 

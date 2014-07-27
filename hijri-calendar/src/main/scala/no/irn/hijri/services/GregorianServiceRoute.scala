@@ -1,18 +1,15 @@
-package no.irn.hijri.routes
+package no.irn.hijri.services
 
-import akka.actor.{ActorRef}
 import akka.pattern.ask
 import org.slf4j.LoggerFactory
-import no.irn.hijri.model.{DateRelation}
-import org.joda.time.DateTime
+import akka.actor.ActorRef
+import no.irn.hijri.model.{HijriDate, DateRelation}
 import scala.concurrent.ExecutionContext
 import akka.util.Timeout
 import spray.routing.Directives
 
-class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives{
-
+class GregorianServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives {
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
-
 
   // Marshalling support for `application/json`
 
@@ -22,7 +19,6 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
 
   import no.irn.hijri.model.DateRelationJsonProtocol._
 
-
   val hijriRoute =
 
     pathPrefix(IntNumber) {
@@ -30,7 +26,7 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
         pathEnd {
           complete {
             logger.debug("Calling /" + year)
-            val requestYear = new DateTime(year, 1, 1, 0, 0, 0)
+            val requestYear = HijriDate(year, 1, 1)
             (dateConverterActor ?(requestYear, requestYear.plusYears(1)))
               .mapTo[List[DateRelation]]
           }
@@ -40,7 +36,7 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
               pathEnd {
                 complete {
                   logger.debug("Calling /" + year + "/" + month)
-                  val requestYearMonth = new DateTime(year, month, 1, 0, 0, 0)
+                  val requestYearMonth = HijriDate(year, month, 1)
                   (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1)))
                     .mapTo[List[DateRelation]]
                 }
@@ -49,12 +45,11 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
                   day =>
                     complete {
                       logger.debug("Calling /" + year + "/" + month + "/" + day)
-                      (dateConverterActor ?  new DateTime(year, month, day, 0, 0, 0))
+                      (dateConverterActor ? HijriDate(year, month, day))
                         .mapTo[DateRelation]
                     }
                 }
           }
     }
-
 
 }

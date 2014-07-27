@@ -1,11 +1,10 @@
-package no.irn.hijri.routes
+package no.irn.hijri.services
 
 import akka.actor.{Props, Actor}
 import spray.routing.HttpService
 import org.joda.time.DateTime
 import no.irn.hijri.model.DateRelation
 import akka.pattern.ask
-import no.irn.hijri.services.ConverterActor
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
@@ -28,8 +27,8 @@ trait CalendarServiceRoute extends HttpService  {
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
   // we use the enclosing ActorContext's or ActorSystem's dispatcher for our Futures and Scheduler
   val dateConverterActor = actorRefFactory.actorOf(Props[ConverterActor], "dateConverter")
-  val hijriRoute = new HijriServiceRoute(dateConverterActor).hijriRoute
-  val gregorianRoute = new GregorianServiceRoute(dateConverterActor).gregorianRoute
+  val gregorianRoute = new HijriServiceRoute(dateConverterActor).gregorianRoute
+  val hijriRoute = new GregorianServiceRoute(dateConverterActor).hijriRoute
 
   implicit lazy val executionContext = actorRefFactory.dispatcher
   implicit lazy val timeout = Timeout(5, TimeUnit.SECONDS)
@@ -52,11 +51,11 @@ trait CalendarServiceRoute extends HttpService  {
         //.recover{case _ =>; "error"}
       }
     } ~
-      pathPrefix(hijriToGregorianPath) {
-        hijriRoute
-      } ~
       pathPrefix(gregorianToHijriPath) {
         gregorianRoute
+      } ~
+      pathPrefix(hijriToGregorianPath) {
+        hijriRoute
       }
 
 

@@ -1,9 +1,9 @@
 package no.irn.hijri
 
 import akka.actor.{Props, ActorSystem}
-import no.irn.hijri.routes.CalendarServiceActor
 import akka.io.IO
 import spray.can.Http
+import no.irn.hijri.services.CalendarServiceActor
 
 object Boot extends App  {
   // we need an ActorSystem to host our application in
