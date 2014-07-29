@@ -2,10 +2,11 @@ package no.irn.hijri.services
 
 import no.irn.hijri.model.{DateRelation, HijriDate}
 import akka.actor.Actor
-import org.joda.time.DateTime
+import org.joda.time.{Days, DateTime}
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import no.irn.hijri.database.IslamicCalendarDBAdapter
+import org.slf4j.LoggerFactory
 
 class ConverterActor extends Actor {
 
@@ -28,11 +29,16 @@ object Converter {
 
   }
 
+  private lazy val logger = LoggerFactory.getLogger(this.getClass)
+
   def gregorianToHijri(from:DateTime, to:DateTime):List[DateRelation] = {
     // calculate difference between from and to
+    logger.debug("fetching all months between gregorian "+from+" and "+to)
+    val monthRange = IslamicCalendarDBAdapter.getClosestMonthRange(from,to)
+    logger.debug("result: "+monthRange)
     // from db fetch all hijri months closest to from (floor) and closest to to (ceil)
     // for each row calculate hijri days until the # difference is achieved.
-    null
+    monthRange
 
   }
 
@@ -41,10 +47,14 @@ object Converter {
   }
 
   def gregorianToHijri(date:DateTime) = {
-    // from db find the first hirji date where date is less than hijri's gregorian date
-    val closesHijriDate= IslamicCalendarDBAdapter.getClosestHijriDate(date)
+    val closestFirstInMonthDate = IslamicCalendarDBAdapter.getClosestHijriDate(date)
 
-    // add difference in gregorian dates to the hijri date and return.
-    closesHijriDate
+    val dayDifference = Days.daysBetween(closestFirstInMonthDate.gregorianDate, date).getDays
+    DateRelation(
+      HijriDate(
+        closestFirstInMonthDate.hijriDate.year,
+        closestFirstInMonthDate.hijriDate.month,
+        closestFirstInMonthDate.hijriDate.day+dayDifference),
+      date)
   }
 }
