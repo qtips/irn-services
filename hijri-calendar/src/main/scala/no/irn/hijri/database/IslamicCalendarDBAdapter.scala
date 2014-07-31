@@ -64,11 +64,7 @@ object IslamicCalendarDBAdapter {
                           WHERE h2.irn_calc <= $from
                           ORDER BY h2.irn_calc DESC
                           LIMIT 1)
-    AND h1.IRN_calc <= (SELECT h3.irn_calc
-                        FROM hijri_months h3
-                        WHERE h3.irn_calc >= $to
-                        ORDER BY h3.irn_calc ASC
-                        LIMIT 1);
+    AND h1.IRN_calc <= $to;
       """.as[HijriMonths#TableElementType]
   }
 

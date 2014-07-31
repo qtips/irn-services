@@ -37,8 +37,9 @@ class GregorianServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Exe
                 complete {
                   logger.debug("Calling /" + year + "/" + month)
                   val requestYearMonth = HijriDate(year, month, 1)
-                  (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1)))
-                    .mapTo[List[DateRelation]]
+                  (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1))).map(println(_))
+                    //.mapTo[List[DateRelation]]
+                  ""
                 }
               } ~
                 path(IntNumber) {

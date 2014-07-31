@@ -32,7 +32,7 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
             logger.debug("Calling /" + year)
             val requestYear = new DateTime(year, 1, 1, 0, 0, 0)
             (dateConverterActor ?(requestYear, requestYear.plusYears(1)))
-              .mapTo[List[DateRelation]]
+              .mapTo[Seq[DateRelation]]
           }
         } ~
           pathPrefix(IntNumber) {
@@ -42,7 +42,8 @@ class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Executi
                   logger.debug("Calling /" + year + "/" + month)
                   val requestYearMonth = new DateTime(year, month, 1, 0, 0, 0)
                   (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1)))
-                    .mapTo[List[DateRelation]]
+                    .mapTo[Seq[DateRelation]]
+
                 }
               } ~
                 path(IntNumber) {

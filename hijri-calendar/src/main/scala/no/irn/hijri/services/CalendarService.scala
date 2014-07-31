@@ -31,7 +31,7 @@ trait CalendarServiceRoute extends HttpService  {
   val hijriRoute = new GregorianServiceRoute(dateConverterActor).hijriRoute
 
   implicit lazy val executionContext = actorRefFactory.dispatcher
-  implicit lazy val timeout = Timeout(5, TimeUnit.SECONDS)
+  implicit lazy val timeout = Timeout(1000, TimeUnit.SECONDS)
 
   val hijriToGregorianPath = "hijriToGregorian" //TODO get from config
   val gregorianToHijriPath = "gregorianToHijri"
