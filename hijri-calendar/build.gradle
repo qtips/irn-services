@@ -8,9 +8,23 @@ jar {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+    manifest {
+        attributes("Main-Class": "no.irn.hijri.Boot" )
+    }
 }
 
 task runServer(type:JavaExec, dependsOn:"classes") {
     main = "no.irn.hijri.Boot"
+    def commandLineArgs = []
+
+    if (project.hasProperty("host") ) {
+        commandLineArgs.add(host)
+    } else commandLineArgs.add(null)
+
+    if (project.hasProperty("port"))
+        commandLineArgs.add(port)
+    else commandLineArgs.add(null)
+
+    args = commandLineArgs
     classpath=sourceSets.main.runtimeClasspath
 }
