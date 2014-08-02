@@ -12,8 +12,11 @@ object Boot extends App  {
   // create and start our service actor
   val service = system.actorOf(Props[CalendarServiceActor], "hijri-service")
 
+  val interface = Option(args(0)).getOrElse("localhost")
+  val port = Option(args(1)).getOrElse("8080").toInt
+
   // start a new HTTP server on port 8080 with our service actor as the handler
-  IO(Http) ! Http.Bind(service, "localhost", port = 8080)
+  IO(Http) ! Http.Bind(service, interface = interface, port = port)
 
   sys.addShutdownHook(system.shutdown())
 
