@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory
 import no.irn.hijri.model.{HijriDate, DateRelation}
 import scala.slick.jdbc.StaticQuery.interpolation
 
-object IslamicCalendarDBAdapter {
+class IslamicCalendarDBAdapter(val dbHost:String, val user:String, val password:String) {
 
 
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   val hijriMonths: TableQuery[HijriMonths] = TableQuery[HijriMonths]
-  val db = Database.forURL("jdbc:mysql://localhost/islamic_calendar", user = "root", password = "", driver = "com.mysql.jdbc.Driver")
+  val db = Database.forURL("jdbc:mysql://"+dbHost+"/islamic_calendar", user = user, password = password, driver = "com.mysql.jdbc.Driver")
 
 
   /**

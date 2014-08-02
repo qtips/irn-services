@@ -25,6 +25,18 @@ task runServer(type:JavaExec, dependsOn:"classes") {
         commandLineArgs.add(port)
     else commandLineArgs.add(null)
 
+    if (project.hasProperty("dbHost"))
+        commandLineArgs.add(dbHost)
+    else commandLineArgs.add(null)
+
+    if (project.hasProperty("dbUser"))
+        commandLineArgs.add(dbUser)
+    else commandLineArgs.add(null)
+
+    if (project.hasProperty("dbPass"))
+        commandLineArgs.add(dbPass)
+    else commandLineArgs.add(null)
+
     args = commandLineArgs
     classpath=sourceSets.main.runtimeClasspath
 }

@@ -6,21 +6,23 @@ import org.joda.time.{Days, DateTime}
 import no.irn.hijri.database.IslamicCalendarDBAdapter
 import org.slf4j.LoggerFactory
 
-class ConverterActor extends Actor {
+class ConverterActor(converter:Converter) extends Actor {
 
-  private lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   //TODO exception handling
   override def receive = {
-    case (from: HijriDate, to: HijriDate) => sender() ! Converter.hijriToGregorian(from, to)
-    case (from: DateTime, to: DateTime) => sender() ! Converter.gregorianToHijri(from, to).get
-    case (date: HijriDate) => sender() ! Converter.hijriToGregorian(date)
-    case (date: DateTime) => sender() ! Converter.gregorianToHijri(date)
+    case (from: HijriDate, to: HijriDate) => sender() ! converter.hijriToGregorian(from, to)
+    case (from: DateTime, to: DateTime) => sender() ! converter.gregorianToHijri(from, to).get
+    case (date: HijriDate) => sender() ! converter.hijriToGregorian(date)
+    case (date: DateTime) => sender() ! converter.gregorianToHijri(date)
     case _ => sender() ! akka.actor.Status.Failure
   }
 }
 
-object Converter {
+class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val dbPass:String="") {
+
+  private val dbAdapter = new IslamicCalendarDBAdapter(dbHost,dbUser,dbPass)
+
   def hijriToGregorian(from: HijriDate, to: HijriDate): List[DateRelation] = {
     List(
       DateRelation(HijriDate(1337, 1, 1), new DateTime(1990, 4, 1, 0, 0)),
@@ -57,7 +59,7 @@ object Converter {
   def gregorianToHijri(from: DateTime, to: DateTime): Option[Seq[DateRelation]] = {
     // from db fetch all hijri months closest to from (floor) and closest to to (ceil)
     logger.debug("fetching all months between gregorian " + from + " and " + to)
-    val monthRange = IslamicCalendarDBAdapter.getClosestMonthRange(from, to)
+    val monthRange = dbAdapter.getClosestMonthRange(from, to)
     logger.debug("query result: " + monthRange)
     monthRange match {
       case Nil => logger.debug("returning None"); None
@@ -83,7 +85,7 @@ object Converter {
   }
 
   def gregorianToHijri(date: DateTime) = {
-    val closestFirstInMonthDate = IslamicCalendarDBAdapter.getClosestHijriDate(date)
+    val closestFirstInMonthDate = dbAdapter.getClosestHijriDate(date)
     calculateHijriDate(closestFirstInMonthDate, date)
   }
 
