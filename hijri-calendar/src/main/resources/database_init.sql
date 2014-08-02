@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS hijri_months (
 
 COMMIT;
 
-SELECT
+/*SELECT
   s7.`hijri_year`,
   s7.`hijri_month`,
   s7.`IRN_calc`,
@@ -110,4 +110,4 @@ SELECT
 FROM hijri_months h3
 WHERE h3.irn_calc >= '2012-07-03'
 ORDER BY h3.irn_calc ASC
-LIMIT 1;
+LIMIT 1; */
