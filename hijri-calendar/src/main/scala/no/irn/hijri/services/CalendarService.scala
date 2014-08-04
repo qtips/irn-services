@@ -29,7 +29,7 @@ trait CalendarServiceRoute extends HttpService  {
 
   // we use the enclosing ActorContext's or ActorSystem's dispatcher for our Futures and Scheduler
   implicit lazy val executionContext = actorRefFactory.dispatcher
-  implicit lazy val timeout = Timeout(1000, TimeUnit.SECONDS)
+  implicit lazy val timeout = Timeout(5, TimeUnit.SECONDS)
 
   implicit def defaultExceptionHandler(implicit log: LoggingContext) =
     ExceptionHandler {
