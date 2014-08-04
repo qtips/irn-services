@@ -49,7 +49,7 @@ class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val 
     yield {
       DateRelation(
         start.hijriDate.naivePlusDays(i)
-          .getOrElse(throwAssertionErrorForNaiveAddition(i, start.hijriDate)),
+          .getOrElse(throwExceptionForNaiveAddition(i, start.hijriDate)),
         start.gregorianDate.plusDays(i)
 
       )
@@ -76,8 +76,8 @@ class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val 
 
   }
 
-  private def throwAssertionErrorForNaiveAddition(days: Int, date: HijriDate) = {
-    throw new AssertionError("Could not naively add " + days + " days to hijriDate " + date)
+  private def throwExceptionForNaiveAddition(days: Int, date: HijriDate) = {
+    throw new IllegalArgumentException("Tried to add " + days + " days to hijriDate " + date + " or incomplete database entry?")
   }
 
   def hijriToGregorian(date: HijriDate) = {
@@ -93,7 +93,7 @@ class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val 
     logger.debug("calculating date hijri date for " + date + " with floor=" + floorFirstInMonthForDate)
     val dayDifference = Days.daysBetween(floorFirstInMonthForDate.gregorianDate, date).getDays
     DateRelation(
-      floorFirstInMonthForDate.hijriDate.naivePlusDays(dayDifference).getOrElse(throwAssertionErrorForNaiveAddition(dayDifference, floorFirstInMonthForDate.hijriDate)),
+      floorFirstInMonthForDate.hijriDate.naivePlusDays(dayDifference).getOrElse(throwExceptionForNaiveAddition(dayDifference, floorFirstInMonthForDate.hijriDate)),
       date)
   }
 }
