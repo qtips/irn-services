@@ -6,22 +6,30 @@ import org.joda.time.{Days, DateTime}
 import no.irn.hijri.database.IslamicCalendarDBAdapter
 import org.slf4j.LoggerFactory
 
-class ConverterActor(converter:Converter) extends Actor {
+class ConverterActor(converter: Converter) extends Actor {
 
 
   //TODO exception handling
   override def receive = {
+
     case (from: HijriDate, to: HijriDate) => sender() ! converter.hijriToGregorian(from, to)
-    case (from: DateTime, to: DateTime) => sender() ! converter.gregorianToHijri(from, to).get
+    case (from: DateTime, to: DateTime) =>
+      try {
+        val result = converter.gregorianToHijri(from, to).getOrElse(akka.actor.Status.Failure(new Exception("no result")))
+        (sender() ! result  )
+      } catch {
+        case e: Throwable => (sender() ! akka.actor.Status.Failure(e))
+      }
     case (date: HijriDate) => sender() ! converter.hijriToGregorian(date)
     case (date: DateTime) => sender() ! converter.gregorianToHijri(date)
     case _ => sender() ! akka.actor.Status.Failure
   }
+
 }
 
-class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val dbPass:String="") {
+class Converter(val dbHost: String = "localhost", val dbUser: String = "root", val dbPass: String = "") {
 
-  private val dbAdapter = new IslamicCalendarDBAdapter(dbHost,dbUser,dbPass)
+  private val dbAdapter = new IslamicCalendarDBAdapter(dbHost, dbUser, dbPass)
 
   def hijriToGregorian(from: HijriDate, to: HijriDate): List[DateRelation] = {
     List(
@@ -77,7 +85,7 @@ class Converter(val dbHost:String = "localhost", val dbUser:String ="root", val 
   }
 
   private def throwExceptionForNaiveAddition(days: Int, date: HijriDate) = {
-    throw new IllegalArgumentException("Tried to add " + days + " days to hijriDate " + date + " or incomplete database entry?")
+    throw new IllegalArgumentException("Cannot add " + days + " days to hijriDate " + date + ". Incomplete database entry?")
   }
 
   def hijriToGregorian(date: HijriDate) = {

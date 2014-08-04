@@ -1,13 +1,15 @@
 package no.irn.hijri.services
 
 import akka.actor.{ActorSystem, ActorRef, Props, Actor}
-import spray.routing.HttpService
+import spray.routing.{ExceptionHandler, HttpService}
 import org.joda.time.DateTime
 import no.irn.hijri.model.DateRelation
 import akka.pattern.ask
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
+import spray.util.LoggingContext
+import spray.http.StatusCodes._
 
 class CalendarServiceActor(converterActorRef:ActorRef) extends Actor with CalendarServiceRoute {
   // the HttpService trait defines only one abstract member, which
@@ -20,7 +22,7 @@ class CalendarServiceActor(converterActorRef:ActorRef) extends Actor with Calend
   // timeout handling or alternative handler registration
   def receive = runRoute(calendarRoute)
 
-  val dateConverterActor = converterActorRef
+  def dateConverterActor = converterActorRef
 }
 
 trait CalendarServiceRoute extends HttpService  {
@@ -29,8 +31,18 @@ trait CalendarServiceRoute extends HttpService  {
   implicit lazy val executionContext = actorRefFactory.dispatcher
   implicit lazy val timeout = Timeout(1000, TimeUnit.SECONDS)
 
+  implicit def defaultExceptionHandler(implicit log: LoggingContext) =
+    ExceptionHandler {
+      case e: Exception =>
+        requestUri { uri =>
+          log.warning("Request to {} could not be handled normally", uri)
+          complete(InternalServerError, e.getMessage)
+        }
+    }
+
+
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
-  val dateConverterActor: ActorRef
+  def dateConverterActor: ActorRef
   val gregorianRoute = new HijriServiceRoute(dateConverterActor).gregorianRoute
   val hijriRoute = new GregorianServiceRoute(dateConverterActor).hijriRoute
 
