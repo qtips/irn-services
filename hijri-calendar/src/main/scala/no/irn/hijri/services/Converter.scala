@@ -29,39 +29,16 @@ class ConverterActor(converter: Converter) extends Actor {
 
 class Converter(val dbHost: String = "localhost", val dbUser: String = "root", val dbPass: String = "") {
 
+  private lazy val logger = LoggerFactory.getLogger(this.getClass)
   private val dbAdapter = new IslamicCalendarDBAdapter(dbHost, dbUser, dbPass)
 
-  def hijriToGregorian(from: HijriDate, to: HijriDate): List[DateRelation] = {
-    List(
+  def hijriToGregorian(from: HijriDate, to: HijriDate): Option[Seq[DateRelation]] = {
+    logger.debug("fetching all months between hijri " + from + " and " + to)
+    Option(List(
       DateRelation(HijriDate(1337, 1, 1), new DateTime(1990, 4, 1, 0, 0)),
       DateRelation(HijriDate(1338, 1, 1), new DateTime(1991, 4, 1, 0, 0)),
-      DateRelation(HijriDate(1339, 1, 1), new DateTime(1992, 4, 1, 0, 0)))
+      DateRelation(HijriDate(1339, 1, 1), new DateTime(1992, 4, 1, 0, 0))))
 
-  }
-
-  private lazy val logger = LoggerFactory.getLogger(this.getClass)
-
-
-  private def generateMonthDateRelations(startOfMonthRows: Seq[DateRelation]): Seq[DateRelation] = {
-    startOfMonthRows match {
-      case first :: Nil => Nil
-      case first :: second =>
-        generateDateRelations(first, second.head.gregorianDate) ++ generateMonthDateRelations(second)
-    }
-  }
-
-  private def generateDateRelations(start: DateRelation, end: DateTime) = {
-    for {
-      i <- 0 until Days.daysBetween(start.gregorianDate, end).getDays
-    }
-    yield {
-      DateRelation(
-        start.hijriDate.naivePlusDays(i)
-          .getOrElse(throwExceptionForNaiveAddition(i, start.hijriDate)),
-        start.gregorianDate.plusDays(i)
-
-      )
-    }
   }
 
   def gregorianToHijri(from: DateTime, to: DateTime): Option[Seq[DateRelation]] = {
@@ -73,35 +50,70 @@ class Converter(val dbHost: String = "localhost", val dbUser: String = "root", v
       case Nil => logger.debug("returning None"); None
       case first :: Nil =>
         logger.debug("returning only first " + first)
-        Some(generateDateRelations(calculateHijriDate(first, from), to))
+        Some(generateDateRelations(calculateDateRelation(first, from), to))
       case first :: rest =>
         logger.debug("returning first and rest " + first + "---" + rest)
         Some(
           generateMonthDateRelations(
-            calculateHijriDate(first, from) +: rest :+ calculateHijriDate(rest.last, to)))
+            calculateDateRelation(first, from) +: rest :+ calculateDateRelation(rest.last, to)))
 
     }
 
+  }
+
+  private def generateDateRelations(start: DateRelation, end: DateTime) = {
+    for {
+      i <- 0 until Days.daysBetween(start.gregorian, end).getDays
+    }
+    yield {
+      DateRelation(
+        start.hijri.naivePlusDays(i)
+          .getOrElse(throwExceptionForNaiveAddition(i, start.hijri)),
+        start.gregorian.plusDays(i)
+
+      )
+    }
+  }
+
+  private def generateMonthDateRelations(startOfMonthRows: Seq[DateRelation]): Seq[DateRelation] = {
+    startOfMonthRows match {
+      case first :: Nil => Nil
+      case first :: second =>
+        generateDateRelations(first, second.head.gregorian) ++ generateMonthDateRelations(second)
+    }
   }
 
   private def throwExceptionForNaiveAddition(days: Int, date: HijriDate) = {
     throw new IllegalArgumentException("Cannot add " + days + " days to hijriDate " + date + ". Incomplete database entry?")
   }
 
-  def hijriToGregorian(date: HijriDate) = {
-    DateRelation(date, new DateTime(2001, 1, 2, 0, 0))
+  def hijriToGregorian(hDate: HijriDate) = {
+    val closestFirstInMonthDate = dbAdapter.findFloorFirstInMonth(hDate)
+    calculateDateRelation2(closestFirstInMonthDate,hDate)
   }
 
-  def gregorianToHijri(date: DateTime) = {
-    val closestFirstInMonthDate = dbAdapter.getClosestHijriDate(date)
-    calculateHijriDate(closestFirstInMonthDate, date)
+  def gregorianToHijri(gDate: DateTime) = {
+    val closestFirstInMonthDate = dbAdapter.getClosestHijriDate(gDate)
+    calculateDateRelation(closestFirstInMonthDate, gDate)
   }
 
-  private def calculateHijriDate(floorFirstInMonthForDate: DateRelation, date: DateTime) = {
-    logger.debug("calculating date hijri date for " + date + " with floor=" + floorFirstInMonthForDate)
-    val dayDifference = Days.daysBetween(floorFirstInMonthForDate.gregorianDate, date).getDays
+  private def calculateDateRelation2(floorFirstInMonthForDate: DateRelation, forDate:HijriDate) = {
+    logger.debug("calculating gregorian date for "+ forDate + "with floor="+floorFirstInMonthForDate)
     DateRelation(
-      floorFirstInMonthForDate.hijriDate.naivePlusDays(dayDifference).getOrElse(throwExceptionForNaiveAddition(dayDifference, floorFirstInMonthForDate.hijriDate)),
-      date)
+      forDate,
+      floorFirstInMonthForDate.gregorian.plusDays(forDate.day-1)
+    )
+  }
+
+  private def calculateDateRelation(floorFirstInMonthForDate: DateRelation, forDate: DateTime) = {
+    logger.debug("calculating hijri date for " + forDate + " with floor=" + floorFirstInMonthForDate)
+    val dayDifference = Days.daysBetween(floorFirstInMonthForDate.gregorian, forDate).getDays
+    DateRelation(
+      floorFirstInMonthForDate.hijri.naivePlusDays(dayDifference).getOrElse(throwExceptionForNaiveAddition(dayDifference, floorFirstInMonthForDate.hijri)),
+      forDate)
+  }
+
+  private def calculateGregorianDate(floorFirstInMonthForDate: DateRelation, date:HijriDate) {
+    DateRelation(date, floorFirstInMonthForDate.gregorian.plusDays(date.day-1))
   }
 }

@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import akka.util.Timeout
 import spray.routing.Directives
 
-class HijriServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives{
+class GregorianToHijriRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives{
 
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
 

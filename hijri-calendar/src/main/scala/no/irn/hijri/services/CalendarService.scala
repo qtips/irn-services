@@ -43,12 +43,12 @@ trait CalendarServiceRoute extends HttpService  {
 
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
   def dateConverterActor: ActorRef
-  val gregorianRoute = new HijriServiceRoute(dateConverterActor).gregorianRoute
-  val hijriRoute = new GregorianServiceRoute(dateConverterActor).hijriRoute
+  val gregorianRoute = new GregorianToHijriRoute(dateConverterActor).gregorianRoute
+  val hijriRoute = new HijriToGregorianRoute(dateConverterActor).hijriRoute
 
 
-  val hijriToGregorianPath = "hijriToGregorian" //TODO get from config
-  val gregorianToHijriPath = "gregorianToHijri"
+  val hijriToGregorianPath = "ToGregorian" //TODO get from config
+  val gregorianToHijriPath = "ToHijri"
 
   import spray.httpx.SprayJsonSupport.sprayJsonMarshaller
   import no.irn.hijri.model.DateRelationJsonProtocol._

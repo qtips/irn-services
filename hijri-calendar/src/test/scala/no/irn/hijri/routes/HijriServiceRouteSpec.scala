@@ -3,7 +3,7 @@ package no.irn.hijri.routes
 import org.scalatest.FlatSpec
 import spray.testkit.ScalatestRouteTest
 import akka.actor.{Props}
-import no.irn.hijri.services.{HijriServiceRoute, ConverterActor}
+import no.irn.hijri.services.{GregorianToHijriRoute, ConverterActor}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
@@ -19,7 +19,7 @@ class HijriServiceRouteSpec extends FlatSpec with ScalatestRouteTest {
   lazy val logger = LoggerFactory.getLogger(this.getClass())
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
   val dateConverterActor = system.actorOf(Props[ConverterActor], "dateConverter") //TODO move to super trait
-  val hijriRoute =  new HijriServiceRoute(dateConverterActor).gregorianRoute
+  val hijriRoute =  new GregorianToHijriRoute(dateConverterActor).gregorianRoute
 
   behavior of "Hijri service routes"
 

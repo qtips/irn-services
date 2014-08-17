@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 import akka.util.Timeout
 import spray.routing.Directives
 
-class GregorianServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives {
+class HijriToGregorianRoute(val dateConverterActor:ActorRef)(implicit val ec:ExecutionContext, implicit val timeout:Timeout) extends Directives {
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   // Marshalling support for `application/json`
@@ -28,7 +28,7 @@ class GregorianServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Exe
             logger.debug("Calling /" + year)
             val requestYear = HijriDate(year, 1, 1)
             (dateConverterActor ?(requestYear, requestYear.plusYears(1)))
-              .mapTo[List[DateRelation]]
+              .mapTo[Seq[DateRelation]]
           }
         } ~
           pathPrefix(IntNumber) {
@@ -38,8 +38,7 @@ class GregorianServiceRoute(val dateConverterActor:ActorRef)(implicit val ec:Exe
                   logger.debug("Calling /" + year + "/" + month)
                   val requestYearMonth = HijriDate(year, month, 1)
                   (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1))).map(println(_))
-                    //.mapTo[List[DateRelation]]
-                  ""
+                    .mapTo[Seq[DateRelation]]
                 }
               } ~
                 path(IntNumber) {

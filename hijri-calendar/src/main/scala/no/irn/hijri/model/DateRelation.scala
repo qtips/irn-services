@@ -4,7 +4,7 @@ import org.joda.time.DateTime
 import spray.json._
 import org.joda.time.format.DateTimeFormat
 
-case class DateRelation(hijriDate: HijriDate, gregorianDate: DateTime)
+case class DateRelation(hijri: HijriDate, gregorian: DateTime)
 
 
 object DateTimeJsonProtocol extends DefaultJsonProtocol {
