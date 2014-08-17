@@ -1,4 +1,4 @@
-<configuration>
+<configuration scan="true">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
@@ -7,6 +7,7 @@
 
     <logger name="deng" level="DEBUG"/>
     <logger name="akka" level="INFO"/>
+    <logger name="no.irn.hijri" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

@@ -12,7 +12,7 @@ class ConverterActor(converter: Converter) extends Actor {
   //TODO exception handling
   override def receive = {
 
-    case (from: HijriDate, to: HijriDate) => sender() ! converter.hijriToGregorian(from, to)
+    case (from: HijriDate, to: HijriDate) => sender() ! converter.hijriToGregorian(from, to).get
     case (from: DateTime, to: DateTime) =>
       try {
         val result = converter.gregorianToHijri(from, to).getOrElse(akka.actor.Status.Failure(new Exception("no result")))
@@ -34,10 +34,21 @@ class Converter(val dbHost: String = "localhost", val dbUser: String = "root", v
 
   def hijriToGregorian(from: HijriDate, to: HijriDate): Option[Seq[DateRelation]] = {
     logger.debug("fetching all months between hijri " + from + " and " + to)
-    Option(List(
-      DateRelation(HijriDate(1337, 1, 1), new DateTime(1990, 4, 1, 0, 0)),
-      DateRelation(HijriDate(1338, 1, 1), new DateTime(1991, 4, 1, 0, 0)),
-      DateRelation(HijriDate(1339, 1, 1), new DateTime(1992, 4, 1, 0, 0))))
+    val monthRange = dbAdapter.findClosestMonthRange(from, to)
+    monthRange match {
+      case Nil => logger.debug("returning None"); None
+      case first :: Nil =>
+        logger.debug("returning only first " + first)
+        Some(
+          generateDateRelations(calculateDateRelation(first, from),
+            calculateDateRelation(first, to).gregorian))
+      case first :: rest =>
+        logger.debug("returning first and rest " + first + "---" + rest)
+        Some(
+          generateMonthDateRelations(
+            calculateDateRelation(first, from) +: rest :+ calculateDateRelation(rest.last, to)))
+
+    }
 
   }
 
@@ -89,7 +100,7 @@ class Converter(val dbHost: String = "localhost", val dbUser: String = "root", v
 
   def hijriToGregorian(hDate: HijriDate) = {
     val closestFirstInMonthDate = dbAdapter.findFloorFirstInMonth(hDate)
-    calculateDateRelation2(closestFirstInMonthDate,hDate)
+    calculateDateRelation(closestFirstInMonthDate, hDate)
   }
 
   def gregorianToHijri(gDate: DateTime) = {
@@ -97,11 +108,11 @@ class Converter(val dbHost: String = "localhost", val dbUser: String = "root", v
     calculateDateRelation(closestFirstInMonthDate, gDate)
   }
 
-  private def calculateDateRelation2(floorFirstInMonthForDate: DateRelation, forDate:HijriDate) = {
-    logger.debug("calculating gregorian date for "+ forDate + "with floor="+floorFirstInMonthForDate)
+  private def calculateDateRelation(floorFirstInMonthForDate: DateRelation, forDate: HijriDate) = {
+    logger.debug("calculating gregorian date for " + forDate + "with floor=" + floorFirstInMonthForDate)
     DateRelation(
       forDate,
-      floorFirstInMonthForDate.gregorian.plusDays(forDate.day-1)
+      floorFirstInMonthForDate.gregorian.plusDays(forDate.day - 1)
     )
   }
 
@@ -113,7 +124,4 @@ class Converter(val dbHost: String = "localhost", val dbUser: String = "root", v
       forDate)
   }
 
-  private def calculateGregorianDate(floorFirstInMonthForDate: DateRelation, date:HijriDate) {
-    DateRelation(date, floorFirstInMonthForDate.gregorian.plusDays(date.day-1))
-  }
 }

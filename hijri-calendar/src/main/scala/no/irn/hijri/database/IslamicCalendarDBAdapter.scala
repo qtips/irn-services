@@ -7,20 +7,20 @@ import org.slf4j.LoggerFactory
 import no.irn.hijri.model.{HijriDate, DateRelation}
 import scala.slick.jdbc.StaticQuery.interpolation
 
-class IslamicCalendarDBAdapter(val dbHost:String, val user:String, val password:String) {
+class IslamicCalendarDBAdapter(val dbHost: String, val user: String, val password: String) {
 
 
   private lazy val logger = LoggerFactory.getLogger(this.getClass)
 
   val hijriMonths: TableQuery[HijriMonths] = TableQuery[HijriMonths]
-  val db = Database.forURL("jdbc:mysql://"+dbHost+"/islamic_calendar", user = user, password = password, driver = "com.mysql.jdbc.Driver")
+  val db = Database.forURL("jdbc:mysql://" + dbHost + "/islamic_calendar", user = user, password = password, driver = "com.mysql.jdbc.Driver")
 
 
   def findFloorFirstInMonth(date: HijriDate) = {
     db.withSession {
       implicit session =>
         val findMonthQuery = HijriMonths.filter(h => h.hijriMonth === date.month && h.hijriYear === date.year)
-        logger.debug("executing "+findMonthQuery.selectStatement)
+        logger.debug("executing " + findMonthQuery.selectStatement)
         val hijriMonthRow = findMonthQuery.first
         logger.debug("first result: " + hijriMonthRow)
         rowToDateRelation(hijriMonthRow)
@@ -28,12 +28,17 @@ class IslamicCalendarDBAdapter(val dbHost:String, val user:String, val password:
     }
   }
 
-  def getClosestMonthRange(from: HijriDate, to: HijriDate) = {
+  def findClosestMonthRange(from: HijriDate, to: HijriDate) = {
     db.withSession {
       implicit session =>
         val findMonthRangeQuery = HijriMonths.filter(
-          h=>
-            h.hijriYear.between(from.year, to.year))
+          h =>
+            (h.hijriYear > from.year && h.hijriYear < to.year) ||
+            (h.hijriYear === from.year && h.hijriMonth >= from.month && h.hijriMonth <= 12 ) ||
+            (h.hijriYear === to.year && h.hijriMonth >= 1 && h.hijriMonth <= to.month )
+        )
+        logger.debug("executing: " + findMonthRangeQuery.selectStatement)
+        findMonthRangeQuery.list.map(rowToDateRelation)
 
     }
   }
@@ -46,7 +51,7 @@ class IslamicCalendarDBAdapter(val dbHost:String, val user:String, val password:
    * @param date
    * @return no.irn.hijri.model.DateRelation
    */
-  def getClosestHijriDate(date: DateTime):DateRelation = {
+  def getClosestHijriDate(date: DateTime): DateRelation = {
     val sqlDate = new java.sql.Date(date.getMillis)
     db.withSession {
       implicit session =>
@@ -85,10 +90,9 @@ class IslamicCalendarDBAdapter(val dbHost:String, val user:String, val password:
   private def rowToDateRelation(hijriMonth: HijriMonths#TableElementType) = {
     DateRelation(
       HijriDate(hijriMonth.hijriYear, hijriMonth.hijriMonth, 1),
-      new DateTime(hijriMonth.irnCalc. getOrElse(new java.sql.Date(0))))     //TODO error handling
+      new DateTime(hijriMonth.irnCalc.getOrElse(new java.sql.Date(0)))) //TODO error handling
 
   }
-
 
 
   private def closestMonthRange(from: java.sql.Date, to: java.sql.Date)(implicit session: Session) = {

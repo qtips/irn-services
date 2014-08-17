@@ -37,7 +37,7 @@ class HijriToGregorianRoute(val dateConverterActor:ActorRef)(implicit val ec:Exe
                 complete {
                   logger.debug("Calling /" + year + "/" + month)
                   val requestYearMonth = HijriDate(year, month, 1)
-                  (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1))).map(println(_))
+                  (dateConverterActor ?(requestYearMonth, requestYearMonth.plusMonths(1)))
                     .mapTo[Seq[DateRelation]]
                 }
               } ~
