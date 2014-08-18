@@ -32,6 +32,21 @@ CREATE TABLE IF NOT EXISTS hijri_months (
 
 COMMIT;
 
+SELECT
+  x2.`hijri_year`,
+  x2.`hijri_month`,
+  x2.`IRN_calc`,
+  x2.`IRN_agreed`,
+  x2.`turkish_calc`,
+  x2.`ummul_quran`,
+  x2.`SA_agreed`,
+  x2.`changelog_id`
+FROM `hijri_months` x2
+WHERE (((x2.`hijri_year` > 1436) AND (x2.`hijri_year` < 1436)) OR
+       (((x2.`hijri_year` = 1436) AND (x2.`hijri_month` >= 9)) AND (x2.`hijri_month` <= 12))) OR
+      (((x2.`hijri_year` = 1436) AND (x2.`hijri_month` >= 1)) AND (x2.`hijri_month` <= 10))
+ORDER BY x2.`hijri_year` ASC, x2.`hijri_month` ASC ;
+
 /*SELECT
   s7.`hijri_year`,
   s7.`hijri_month`,

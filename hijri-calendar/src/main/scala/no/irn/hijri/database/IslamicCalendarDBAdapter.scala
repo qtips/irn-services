@@ -2,7 +2,7 @@ package no.irn.hijri.database
 
 import scala.slick.driver.MySQLDriver.simple._
 import no.irn.hijri.database.IslamicCalendarTables.HijriMonths
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import no.irn.hijri.model.{HijriDate, DateRelation}
 import scala.slick.jdbc.StaticQuery.interpolation
@@ -31,12 +31,22 @@ class IslamicCalendarDBAdapter(val dbHost: String, val user: String, val passwor
   def findClosestMonthRange(from: HijriDate, to: HijriDate) = {
     db.withSession {
       implicit session =>
-        val findMonthRangeQuery = HijriMonths.filter(
-          h =>
-            (h.hijriYear > from.year && h.hijriYear < to.year) ||
-            (h.hijriYear === from.year && h.hijriMonth >= from.month && h.hijriMonth <= 12 ) ||
-            (h.hijriYear === to.year && h.hijriMonth >= 1 && h.hijriMonth <= to.month )
-        )
+        val findMonthRangeQuery =
+          if (from.year == to.year) {
+            HijriMonths.filter(
+              h =>
+                (h.hijriYear === from.year && h.hijriMonth >= from.month && h.hijriMonth <= to.month)
+            )
+          } else {
+            HijriMonths.filter(
+              h =>
+                (h.hijriYear > from.year && h.hijriYear < to.year) ||
+                  (h.hijriYear === from.year && h.hijriMonth >= from.month && h.hijriMonth <= 12) ||
+                  (h.hijriYear === to.year && h.hijriMonth >= 1 && h.hijriMonth <= to.month)
+            )
+
+          }
+        findMonthRangeQuery.sortBy((h => (h.hijriYear.asc, h.hijriMonth.asc)))
         logger.debug("executing: " + findMonthRangeQuery.selectStatement)
         findMonthRangeQuery.list.map(rowToDateRelation)
 
